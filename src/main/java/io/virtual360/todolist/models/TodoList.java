@@ -1,5 +1,7 @@
 package io.virtual360.todolist.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -14,6 +16,8 @@ public class TodoList {
     private String name;
     private String description;
     @OneToMany(mappedBy = "todoList")
+    @JsonManagedReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer"})
     private List<Todo> todos = new ArrayList<>();
 
     public TodoList() {
