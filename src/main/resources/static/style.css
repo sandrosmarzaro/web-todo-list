@@ -1,0 +1,21 @@
+body {
+    background-color: #f5f5f5;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    color: #333;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.todoListForm {
+    width: 50%;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    font-size: 2.5em;
+    color: #333;
+    margin: 0;
+    padding: 0.5em 0;
+}
