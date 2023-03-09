@@ -15,7 +15,7 @@ public class TodoList {
     private Integer id;
     private String name;
     private String description;
-    @OneToMany(mappedBy = "todoList")
+    @OneToMany(mappedBy = "todoList", cascade = CascadeType.REMOVE)
     @JsonManagedReference
     @JsonIgnoreProperties({"hibernateLazyInitializer"})
     private List<Todo> todos = new ArrayList<>();

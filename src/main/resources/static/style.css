@@ -7,7 +7,10 @@ body {
     margin: 0;
 }
 
-.todoListForm {
+.todoListForm,
+.todoListTable,
+.todoForm,
+.todoTable {
     width: 50%;
     margin: auto;
 }

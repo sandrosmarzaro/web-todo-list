@@ -1,74 +1,80 @@
 package io.virtual360.todolist.controllers;
 
 import io.virtual360.todolist.models.Todo;
+import io.virtual360.todolist.models.TodoList;
+import io.virtual360.todolist.repositories.TodoListRepository;
 import io.virtual360.todolist.repositories.TodoRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
-import java.util.Map;
 
-@RestController
-@RequestMapping("/api/v1/todo")
+@Controller
 public class TodoController {
 
     private final TodoRepository todoRepository;
+    private final TodoListRepository todoListRepository;
 
-    public TodoController(TodoRepository todoRepository) {
+    public TodoController(TodoRepository todoRepository, TodoListRepository todoListRepository) {
         this.todoRepository = todoRepository;
+        this.todoListRepository = todoListRepository;
     }
 
-    @GetMapping
-    public ResponseEntity<List<Todo>> getTodos() {
-        return ResponseEntity.ok(todoRepository.findAll());
+    @GetMapping("/todos/{id}")
+    public ModelAndView index(@PathVariable("id") Integer id) {
+        List<Todo> todos = todoRepository.findByTodoListId(id);
+        TodoList todoList = todoListRepository.findById(id).get();
+        ModelAndView modelAndView = new ModelAndView("todos");
+        modelAndView.addObject("todoList", todoList);
+        modelAndView.addObject("todos", todos);
+        return modelAndView;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Todo> getTodoById(@PathVariable Integer id) {
-        return todoRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @PostMapping("/todos")
+    public String create(String name,
+                         String description,
+                         Integer todoListId) {
+        Todo todo = new Todo();
+        todo.setName(name);
+        todo.setDescription(description);
+        todo.setTodoList(todoListRepository.findById(todoListId).get());
+        todoRepository.save(todo);
+
+        return "redirect:/todos/" + todoListId;
     }
 
-    @PostMapping
-    public ResponseEntity<Todo> createTodo(@RequestBody Todo todo) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(todoRepository.save(todo));
+    @GetMapping("/todos/edit/{id}")
+    public ModelAndView edit(@PathVariable("id") Integer id) {
+        Todo todo = todoRepository.findById(id).get();
+        ModelAndView modelAndView = new ModelAndView("edit-todo");
+        modelAndView.addObject("todo", todo);
+        return modelAndView;
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Todo> updateTodo(@PathVariable Integer id, @RequestBody Todo todo) {
-        return todoRepository.findById(id)
-                .map(todoExisting -> {
-                    todoExisting.setName(todo.getName());
-                    todoExisting.setDescription(todo.getDescription());
-                    return ResponseEntity.ok(todoRepository.save(todoExisting));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    @PostMapping("/todos/edit/{id}")
+    public String update(@PathVariable("id") Integer id,
+                         String name,
+                         String description,
+                         Integer todoListId) {
+
+        System.out.println("id: " + id);
+        System.out.println("name: " + name);
+        System.out.println("description: " + description);
+        System.out.println("todoListId: " + todoListId);
+
+        Todo todo = todoRepository.findById(id).get();
+        todo.setName(name);
+        todo.setDescription(description);
+        todo.setTodoList(todoListRepository.findById(todoListId).get());
+        todoRepository.save(todo);
+        return "redirect:/todos/" + todoListId;
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteTodo(@PathVariable Integer id) {
-        return todoRepository.findById(id)
-                .map(todo -> {
-                    todoRepository.deleteById(id);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<Todo> patchTodo(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
-        return todoRepository.findById(id)
-                .map(todo -> {
-                    updates.forEach((key, value) -> {
-                        switch (key) {
-                            case "name" -> todo.setName((String) value);
-                            case "description" -> todo.setDescription((String) value);
-                        }
-                    });
-                    return ResponseEntity.ok(todoRepository.save(todo));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/todos/remove/{id}")
+    public String delete(@PathVariable("id") Integer id) {
+        Todo todo = todoRepository.findById(id).get();
+        todoRepository.delete(todo);
+        return "redirect:/todos/" + todo.getTodoList().getId();
     }
 }

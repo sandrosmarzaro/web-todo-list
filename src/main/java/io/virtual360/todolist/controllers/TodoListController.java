@@ -29,6 +29,27 @@ public class TodoListController {
         return "redirect:/";
     }
 
+    @GetMapping("/todoList/edit/{id}")
+    public ModelAndView editList(@PathVariable Integer id) {
+        return todoListRepository.findById(id)
+                .map(todoList -> new ModelAndView("edit-todo-list", "todoList", todoList))
+                .orElseGet(() -> {
+                    String errorMessage = "TodoList with ID " + id + " not found";
+                    return new ModelAndView("edit-todo-list", "errorMessage", errorMessage);
+                });
+    }
+
+    @PostMapping("/todoList/edit/{id}")
+    public String updateList(@PathVariable Integer id, TodoList todoList) {
+        todoListRepository.findById(id)
+                .ifPresent(list -> {
+                    list.setName(todoList.getName());
+                    list.setDescription(todoList.getDescription());
+                    todoListRepository.save(list);
+                });
+        return "redirect:/";
+    }
+
     @GetMapping("/todoList/remove/{id}")
     public String deleteList(@PathVariable Integer id) {
         todoListRepository.findById(id)
